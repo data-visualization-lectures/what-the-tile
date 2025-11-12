@@ -114,6 +114,7 @@ class StyleSwitcher {
 
 map.addControl(new SimpleGeocoder(), 'top-left');
 map.addControl(new StyleSwitcher(), 'top-left');
+map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
 
 // Initialize tile sources and layers
 function initializeTileLayers() {
