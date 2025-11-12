@@ -13,8 +13,8 @@
     "budo": "^11.3.2"
   },
   "scripts": {
-    "build": "browserify src/index.js -o static/bundle.js",
-    "dev": "budo src/index.js --live --dir static"
+    "build": "browserify src/index.js -o docs/bundle.js",
+    "dev": "budo src/index.js --live --dir docs"
   },
   "repository": {
     "type": "git",
@@ -25,5 +25,5 @@
   "bugs": {
     "url": "https://github.com/benjamintd/what-the-tile/issues"
   },
-  "homepage": "https://github.com/benjamintd/what-the-tile#readme"
+  "homepage": "https://data-visualization-lectures.github.io/what-the-tile/"
 }
