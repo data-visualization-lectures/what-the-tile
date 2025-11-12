@@ -4,7 +4,7 @@ const tc = require('@mapbox/tile-cover');
 
 var map = new maplibregl.Map({
   container: 'map',
-  style: 'https://tiles.stadiamaps.com/styles/osm_bright.json',
+  style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
   center: [0, 25],
   zoom: 1.3,
   maxZoom: 18
@@ -60,11 +60,9 @@ class SimpleGeocoder {
 const styleOptions = [
   { name: 'OSM Demo', url: 'https://demotiles.maplibre.org/style.json' },
   { name: 'Positron Light', url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' },
+  { name: 'Positron Nolabels', url: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json' },
   { name: 'Voyager', url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json' },
-  { name: 'Stamen Toner', url: 'https://tiles.stadiamaps.com/styles/stamen_toner.json' },
-  { name: 'Stamen Toner Lite', url: 'https://tiles.stadiamaps.com/styles/stamen_toner_lite.json' },
-  { name: 'Stamen Terrain', url: 'https://tiles.stadiamaps.com/styles/stamen_terrain.json' },
-  { name: 'OSM Bright', url: 'https://tiles.stadiamaps.com/styles/osm_bright.json' }
+  { name: 'Dark Matter', url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' }
 ];
 
 // Map style switcher control
@@ -82,7 +80,7 @@ class StyleSwitcher {
       const option = document.createElement('option');
       option.value = style.url;
       option.textContent = style.name;
-      if (style.name === 'OSM Bright') option.selected = true;
+      if (style.name === 'Positron Light') option.selected = true;
       select.appendChild(option);
     });
 
