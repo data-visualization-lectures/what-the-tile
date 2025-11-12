@@ -4,7 +4,7 @@ const tc = require('@mapbox/tile-cover');
 
 var map = new maplibregl.Map({
   container: 'map',
-  style: 'https://demotiles.maplibre.org/style.json',
+  style: 'https://tiles.stadiamaps.com/styles/osm_bright.json',
   center: [0, 25],
   zoom: 1.3,
   maxZoom: 18
@@ -56,9 +56,78 @@ class SimpleGeocoder {
   }
 }
 
-map.addControl(new SimpleGeocoder(), 'top-left');
+// Style options for map switcher
+const styleOptions = [
+  { name: 'OSM Demo', url: 'https://demotiles.maplibre.org/style.json' },
+  { name: 'Positron Light', url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' },
+  { name: 'Voyager', url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json' },
+  { name: 'Stamen Toner', url: 'https://tiles.stadiamaps.com/styles/stamen_toner.json' },
+  { name: 'Stamen Toner Lite', url: 'https://tiles.stadiamaps.com/styles/stamen_toner_lite.json' },
+  { name: 'Stamen Terrain', url: 'https://tiles.stadiamaps.com/styles/stamen_terrain.json' },
+  { name: 'OSM Bright', url: 'https://tiles.stadiamaps.com/styles/osm_bright.json' }
+];
 
-map.on('load', () => {
+// Map style switcher control
+class StyleSwitcher {
+  onAdd(map) {
+    this.map = map;
+    this.container = document.createElement('div');
+    this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+    this.container.style.cssText = 'display: flex; gap: 10px; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 0 0 2px rgba(0,0,0,0.1);';
+
+    const select = document.createElement('select');
+    select.style.cssText = 'padding: 5px; border: 1px solid #ccc; border-radius: 3px; font-size: 14px;';
+
+    styleOptions.forEach((style, index) => {
+      const option = document.createElement('option');
+      option.value = style.url;
+      option.textContent = style.name;
+      if (style.name === 'OSM Bright') option.selected = true;
+      select.appendChild(option);
+    });
+
+    select.addEventListener('change', (e) => {
+      this.map.setStyle(e.target.value);
+
+      this.map.once('style.load', () => {
+        initializeTileLayers();
+      });
+
+      this.map.once('load', () => {
+        initializeTileLayers();
+      });
+
+      // Fallback: setTimeout as last resort
+      setTimeout(() => {
+        if (this.map.isStyleLoaded()) {
+          initializeTileLayers();
+        }
+      }, 1000);
+    });
+
+    this.container.appendChild(select);
+    return this.container;
+  }
+
+  onRemove() {
+    this.container.parentNode.removeChild(this.container);
+    this.map = undefined;
+  }
+}
+
+map.addControl(new SimpleGeocoder(), 'top-left');
+map.addControl(new StyleSwitcher(), 'top-left');
+
+// Initialize tile sources and layers
+function initializeTileLayers() {
+  // Remove existing sources and layers if they exist
+  if (map.getLayer('tiles-centers')) map.removeLayer('tiles-centers');
+  if (map.getLayer('tiles-shade')) map.removeLayer('tiles-shade');
+  if (map.getLayer('tiles')) map.removeLayer('tiles');
+
+  if (map.getSource('tiles-centers-geojson')) map.removeSource('tiles-centers-geojson');
+  if (map.getSource('tiles-geojson')) map.removeSource('tiles-geojson');
+
   map.addSource('tiles-geojson', {
     type: 'geojson',
     data: {
@@ -113,14 +182,21 @@ map.on('load', () => {
   });
 
   update();
-});
+}
+
+map.on('load', initializeTileLayers);
 
 map.on('moveend', update);
 
 map.on('click', (e) => {
+  if (!map.getLayer('tiles-shade')) {
+    return;
+  }
   features = map.queryRenderedFeatures(e.point, {layers: ['tiles-shade']});
-  copyToClipboard(features[0].properties.quadkey)
-  showSnackbar()
+  if (features && features.length > 0) {
+    copyToClipboard(features[0].properties.quadkey)
+    showSnackbar()
+  }
 })
 
 function update() {
