@@ -5,8 +5,8 @@ const tc = require('@mapbox/tile-cover');
 var map = new maplibregl.Map({
   container: 'map',
   style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-  center: [0, 25],
-  zoom: 1.3,
+  center: [138, 36],
+  zoom: 4.5,
   maxZoom: 18
 });
 
