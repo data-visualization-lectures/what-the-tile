@@ -6,7 +6,7 @@ var map = new maplibregl.Map({
   container: 'map',
   style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
   center: [138, 36],
-  zoom: 4.5,
+  zoom: 1,
   maxZoom: 18
 });
 
