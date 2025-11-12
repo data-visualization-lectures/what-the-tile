@@ -1,22 +1,62 @@
-const MapboxGeocoder = require('@mapbox/mapbox-gl-geocoder');
-const mapboxgl = require('mapbox-gl');
+const maplibregl = require('maplibre-gl');
 const tilebelt = require('@mapbox/tilebelt');
 const tc = require('@mapbox/tile-cover');
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiYmVuamFtaW50ZCIsImEiOiJjaW83enIwNjYwMnB1dmlsejN6cDBzbm93In0.0ZOGwSLp8OjW6vCaEKYFng';
-
-var map = new mapboxgl.Map({
+var map = new maplibregl.Map({
   container: 'map',
-  style: 'mapbox://styles/benjamintd/cjmt1av8w1dto2so7ijtr4b67',
+  style: 'https://demotiles.maplibre.org/style.json',
   center: [0, 25],
-  zoom: 1.3
+  zoom: 1.3,
+  maxZoom: 18
 });
 
-var geocoder = new MapboxGeocoder({
-  accessToken: mapboxgl.accessToken
-});
+// Simple Nominatim-based geocoder control
+class SimpleGeocoder {
+  onAdd(map) {
+    this.map = map;
+    this.container = document.createElement('div');
+    this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+    this.container.style.cssText = 'position: relative; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 0 0 2px rgba(0,0,0,0.1);';
 
-map.addControl(geocoder);
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Search places...';
+    input.style.cssText = 'width: 200px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;';
+
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        this.search(input.value);
+      }
+    });
+
+    this.container.appendChild(input);
+    return this.container;
+  }
+
+  onRemove() {
+    this.container.parentNode.removeChild(this.container);
+    this.map = undefined;
+  }
+
+  search(query) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          const result = data[0];
+          this.map.flyTo({
+            center: [parseFloat(result.lon), parseFloat(result.lat)],
+            zoom: 12
+          });
+        }
+      })
+      .catch(err => console.error('Geocoding error:', err));
+  }
+}
+
+map.addControl(new SimpleGeocoder(), 'top-left');
 
 map.on('load', () => {
   map.addSource('tiles-geojson', {
@@ -40,7 +80,8 @@ map.on('load', () => {
     source: 'tiles-geojson',
     type: 'line',
     paint: {
-      'line-color': '#000'
+      'line-color': '#000',
+      'line-width': 1
     }
   });
 
@@ -82,19 +123,7 @@ map.on('click', (e) => {
   showSnackbar()
 })
 
-function updateGeocoderProximity() {
-  // proximity is designed for local scale, if the user is looking at the whole world,
-  // it doesn't make sense to factor in the arbitrary centre of the map
-  if (map.getZoom() > 9) {
-    var center = map.getCenter().wrap(); // ensures the longitude falls within -180 to 180 as the Geocoding API doesn't accept values outside this range
-    geocoder.setProximity({ longitude: center.lng, latitude: center.lat });
-  } else {
-    geocoder.setProximity(null);
-  }
-}
-
 function update() {
-  updateGeocoderProximity();
   updateTiles();
 }
 
@@ -103,14 +132,18 @@ function updateTiles() {
   var zoom = Math.ceil(map.getZoom());
   tiles = tc.tiles(extentsGeom, {min_zoom: zoom, max_zoom: zoom});
 
+  var tileFeatures = tiles.map(getTileFeature);
+
   map.getSource('tiles-geojson').setData({
     type: 'FeatureCollection',
-    features: tiles.map(getTileFeature)
+    features: tileFeatures
   });
+
+  var tileCenterFeatures = tiles.map(getTileCenterFeature);
 
   map.getSource('tiles-centers-geojson').setData({
     type: 'FeatureCollection',
-    features: tiles.map(getTileCenterFeature)
+    features: tileCenterFeatures
   });
 }
 
