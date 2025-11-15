@@ -201,7 +201,8 @@ map.on('click', (e) => {
   }
   features = map.queryRenderedFeatures(e.point, {layers: ['tiles-shade']});
   if (features && features.length > 0) {
-    copyToClipboard(features[0].properties.quadkey)
+    const infoText = features[0].properties.infoText || `Quadkey:\n${features[0].properties.quadkey}`;
+    copyToClipboard(infoText)
     showSnackbar()
   }
 })
@@ -252,12 +253,14 @@ function getExtentsGeom() {
 
 function getTileFeature(tile) {
   var quadkey = tilebelt.tileToQuadkey(tile);
+  var infoText = formatTileInfo(tile);
 
   var feature = {
     type: 'Feature',
     properties: {
       even: ((tile[0] + tile[1]) % 2 == 0),
-      quadkey: quadkey
+      quadkey: quadkey,
+      infoText: infoText
     },
     geometry: tilebelt.tileToGeoJSON(tile)
   };
@@ -272,23 +275,36 @@ function getTileCenterFeature(tile) {
   ];
 
   var quadkey = tilebelt.tileToQuadkey(tile);
-
-  const centerText = `緯度経度:\nlat ${center[1].toFixed(4)}, lon ${center[0].toFixed(4)}`;
-  const zoomText = `Zoomレベル:\n${tile[2]}`;
-  const tileText = `Tile:\n${JSON.stringify(tile)}`;
-  const quadkeyText = `Quadkey:\n${quadkey}`;
+  var infoText = formatTileInfo(tile);
 
   return {
     type: 'Feature',
     properties: {
-      text: `${centerText}\n\n${zoomText}\n\n${tileText}\n\n${quadkeyText}`,
-      quadkey: quadkey
+      text: infoText,
+      quadkey: quadkey,
+      infoText: infoText
     },
     geometry: {
       type: 'Point',
       coordinates: center
     }
   };
+}
+
+function formatTileInfo(tile) {
+  var box = tilebelt.tileToBBOX(tile);
+  var center = [
+    (box[0] + box[2]) / 2,
+    (box[1] + box[3]) / 2
+  ];
+
+  var quadkey = tilebelt.tileToQuadkey(tile);
+  const centerText = `緯度経度:\nlat ${center[1].toFixed(4)}, lon ${center[0].toFixed(4)}`;
+  const zoomText = `Zoomレベル:\n${tile[2]}`;
+  const tileText = `Tile:\n${JSON.stringify(tile)}`;
+  const quadkeyText = `Quadkey:\n${quadkey}`;
+
+  return `${centerText}\n\n${zoomText}\n\n${tileText}\n\n${quadkeyText}`;
 }
 
 function copyToClipboard(str) {
