@@ -16,7 +16,7 @@ class SimpleGeocoder {
     this.map = map;
     this.container = document.createElement('div');
     this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
-    this.container.style.cssText = 'position: relative; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 0 0 2px rgba(0,0,0,0.1);';
+    this.container.style.cssText = 'position: relative; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 0 0 2px rgba(0,0,0,0.1); display: flex; align-items: center;';
 
     const input = document.createElement('input');
     input.type = 'text';
@@ -29,7 +29,16 @@ class SimpleGeocoder {
       }
     });
 
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Search';
+    button.style.cssText = 'margin-left: 6px; padding: 5px 10px; border: 1px solid #ccc; border-radius: 3px; background: #f5f5f5; cursor: pointer; width: auto; height: auto; text-indent: 0; background-image: none;';
+    button.addEventListener('click', () => {
+      this.search(input.value);
+    });
+
     this.container.appendChild(input);
+    this.container.appendChild(button);
     return this.container;
   }
 
