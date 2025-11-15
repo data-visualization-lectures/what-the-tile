@@ -273,10 +273,15 @@ function getTileCenterFeature(tile) {
 
   var quadkey = tilebelt.tileToQuadkey(tile);
 
+  const centerText = `緯度経度:\nlat ${center[1].toFixed(4)}, lon ${center[0].toFixed(4)}`;
+  const zoomText = `Zoomレベル:\n${tile[2]}`;
+  const tileText = `Tile:\n${JSON.stringify(tile)}`;
+  const quadkeyText = `Quadkey:\n${quadkey}`;
+
   return {
     type: 'Feature',
     properties: {
-      text: 'Tile: ' + JSON.stringify(tile) + '\nQuadkey: ' + quadkey + '\nZoom: ' + tile[2],
+      text: `${centerText}\n\n${zoomText}\n\n${tileText}\n\n${quadkeyText}`,
       quadkey: quadkey
     },
     geometry: {
