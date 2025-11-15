@@ -632,7 +632,7 @@ class SimpleGeocoder {
     this.map = map;
     this.container = document.createElement('div');
     this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
-    this.container.style.cssText = 'position: relative; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 0 0 2px rgba(0,0,0,0.1);';
+    this.container.style.cssText = 'position: relative; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 0 0 2px rgba(0,0,0,0.1); display: flex; align-items: center;';
 
     const input = document.createElement('input');
     input.type = 'text';
@@ -645,7 +645,16 @@ class SimpleGeocoder {
       }
     });
 
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Search';
+    button.style.cssText = 'margin-left: 6px; padding: 5px 10px; border: 1px solid #ccc; border-radius: 3px; background: #f5f5f5; cursor: pointer; width: auto; height: auto; text-indent: 0; background-image: none;';
+    button.addEventListener('click', () => {
+      this.search(input.value);
+    });
+
     this.container.appendChild(input);
+    this.container.appendChild(button);
     return this.container;
   }
 
@@ -808,7 +817,8 @@ map.on('click', (e) => {
   }
   features = map.queryRenderedFeatures(e.point, {layers: ['tiles-shade']});
   if (features && features.length > 0) {
-    copyToClipboard(features[0].properties.quadkey)
+    const infoText = features[0].properties.infoText || `Quadkey:\n${features[0].properties.quadkey}`;
+    copyToClipboard(infoText)
     showSnackbar()
   }
 })
@@ -859,12 +869,14 @@ function getExtentsGeom() {
 
 function getTileFeature(tile) {
   var quadkey = tilebelt.tileToQuadkey(tile);
+  var infoText = formatTileInfo(tile);
 
   var feature = {
     type: 'Feature',
     properties: {
       even: ((tile[0] + tile[1]) % 2 == 0),
-      quadkey: quadkey
+      quadkey: quadkey,
+      infoText: infoText
     },
     geometry: tilebelt.tileToGeoJSON(tile)
   };
@@ -879,18 +891,36 @@ function getTileCenterFeature(tile) {
   ];
 
   var quadkey = tilebelt.tileToQuadkey(tile);
+  var infoText = formatTileInfo(tile);
 
   return {
     type: 'Feature',
     properties: {
-      text: 'Tile: ' + JSON.stringify(tile) + '\nQuadkey: ' + quadkey + '\nZoom: ' + tile[2],
-      quadkey: quadkey
+      text: infoText,
+      quadkey: quadkey,
+      infoText: infoText
     },
     geometry: {
       type: 'Point',
       coordinates: center
     }
   };
+}
+
+function formatTileInfo(tile) {
+  var box = tilebelt.tileToBBOX(tile);
+  var center = [
+    (box[0] + box[2]) / 2,
+    (box[1] + box[3]) / 2
+  ];
+
+  var quadkey = tilebelt.tileToQuadkey(tile);
+  const centerText = `緯度経度:\nlat ${center[1].toFixed(4)}, lon ${center[0].toFixed(4)}`;
+  const zoomText = `Zoomレベル:\n${tile[2]}`;
+  const tileText = `Tile:\n${JSON.stringify(tile)}`;
+  const quadkeyText = `Quadkey:\n${quadkey}`;
+
+  return `${centerText}\n\n${zoomText}\n\n${tileText}\n\n${quadkeyText}`;
 }
 
 function copyToClipboard(str) {
