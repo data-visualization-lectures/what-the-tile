@@ -2,11 +2,16 @@ const maplibregl = require('maplibre-gl');
 const tilebelt = require('@mapbox/tilebelt');
 const tc = require('@mapbox/tile-cover');
 
+const DEFAULT_CENTER = [138, 36];
+const DEFAULT_ZOOM = 1;
+
+const initialView = getInitialViewFromURL();
+
 var map = new maplibregl.Map({
   container: 'map',
   style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-  center: [138, 36],
-  zoom: 1,
+  center: initialView.center,
+  zoom: initialView.zoom,
   maxZoom: 18
 });
 
@@ -191,9 +196,13 @@ function initializeTileLayers() {
   update();
 }
 
-map.on('load', initializeTileLayers);
+map.on('load', () => {
+  initializeTileLayers();
+  updateUrlWithMapState();
+});
 
 map.on('moveend', update);
+map.on('moveend', updateUrlWithMapState);
 
 map.on('click', (e) => {
   if (!map.getLayer('tiles-shade')) {
@@ -209,6 +218,24 @@ map.on('click', (e) => {
 
 function update() {
   updateTiles();
+}
+
+function updateUrlWithMapState() {
+  if (typeof window === 'undefined' || !window.history || !window.location || typeof map === 'undefined') {
+    return;
+  }
+
+  const center = map.getCenter();
+  const zoom = map.getZoom();
+  const params = new URLSearchParams(window.location.search);
+  params.set('lat', center.lat.toFixed(5));
+  params.set('lon', center.lng.toFixed(5));
+  params.set('zoom', zoom.toFixed(2));
+
+  const query = params.toString();
+  const hash = window.location.hash || '';
+  const newUrl = `${window.location.pathname}${query ? `?${query}` : ''}${hash}`;
+  window.history.replaceState({}, '', newUrl);
 }
 
 function updateTiles() {
@@ -229,6 +256,23 @@ function updateTiles() {
     type: 'FeatureCollection',
     features: tileCenterFeatures
   });
+}
+
+function getInitialViewFromURL() {
+  if (typeof window === 'undefined' || !window.location) {
+    return { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const zoomParam = parseFloat(params.get('zoom'));
+  const latParam = parseFloat(params.get('lat'));
+  const lonParam = parseFloat(params.get('lon'));
+
+  const hasLatLon = Number.isFinite(latParam) && Number.isFinite(lonParam);
+  const center = hasLatLon ? [lonParam, latParam] : DEFAULT_CENTER;
+  const zoom = Number.isFinite(zoomParam) ? zoomParam : DEFAULT_ZOOM;
+
+  return { center, zoom };
 }
 
 function getExtentsGeom() {
