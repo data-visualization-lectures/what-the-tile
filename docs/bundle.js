@@ -688,14 +688,14 @@ class SimpleGeocoder {
 
 // Style options for map switcher
 const styleOptions = [
-  { name: 'Voyager', url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json' },
-  { name: 'Positron Light', url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' },
-  { name: 'Positron Nolabels', url: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json' },
-  { name: 'Dark Matter', url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' },
-  { name: 'Mapterhorn', id: 'mapterhorn' },
-  { name: 'GSI 標準地図', id: 'gsi-std' },
-  { name: 'GSI 淡色地図', id: 'gsi-pale' },
-  { name: 'GSI 写真', id: 'gsi-photo' }
+  { name: 'Voyager', url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json', minzoom: 0, maxzoom: 28 },
+  { name: 'Positron Light', url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json', minzoom: 0, maxzoom: 28 },
+  { name: 'Positron Nolabels', url: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json', minzoom: 0, maxzoom: 28 },
+  { name: 'Dark Matter', url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', minzoom: 0, maxzoom: 28 },
+  { name: 'Mapterhorn', id: 'mapterhorn', minzoom: 0, maxzoom: 14 },
+  { name: 'GSI 標準地図', id: 'gsi-std', minzoom: 5, maxzoom: 18 },
+  { name: 'GSI 淡色地図', id: 'gsi-pale', minzoom: 5, maxzoom: 18 },
+  { name: 'GSI 写真', id: 'gsi-photo', minzoom: 2, maxzoom: 18 }
 ];
 
 // Load external style JSON from file
@@ -739,6 +739,9 @@ class StyleSwitcher {
 
     select.addEventListener('change', async (e) => {
       const selectedStyle = styleOptions.find(s => (s.id || s.url) === e.target.value);
+      const minzoom = selectedStyle.minzoom || 0;
+      const maxzoom = selectedStyle.maxzoom || 28;
+      const currentZoom = this.map.getZoom();
 
       if (selectedStyle && selectedStyle.id) {
         // Load external style JSON file
@@ -750,6 +753,14 @@ class StyleSwitcher {
       }
 
       this.map.once('style.load', () => {
+        // Auto-adjust zoom level after style is loaded
+        if (currentZoom < minzoom) {
+          console.log(`Zoom adjusted from ${currentZoom} to ${minzoom} (minimum for this style)`);
+          this.map.setZoom(minzoom);
+        } else if (currentZoom > maxzoom) {
+          console.log(`Zoom adjusted from ${currentZoom} to ${maxzoom} (maximum for this style)`);
+          this.map.setZoom(maxzoom);
+        }
         initializeTileLayers();
       });
 
