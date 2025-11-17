@@ -767,8 +767,46 @@ class StyleSwitcher {
   }
 }
 
+// Tile info toggle control
+class TileToggleControl {
+  onAdd(map) {
+    this.map = map;
+    this.container = document.createElement('div');
+    this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+    this.container.style.cssText = 'display: flex; align-items: center; gap: 6px; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 0 0 2px rgba(0,0,0,0.1);';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'tile-info-toggle';
+    checkbox.checked = true;
+    checkbox.style.cssText = 'cursor: pointer; margin: 0; width: 16px; height: 16px;';
+
+    const label = document.createElement('label');
+    label.htmlFor = 'tile-info-toggle';
+    label.textContent = 'タイル情報';
+    label.style.cssText = 'cursor: pointer; margin: 0; font-size: 12px; user-select: none;';
+
+    checkbox.addEventListener('change', (e) => {
+      const visibility = e.target.checked ? 'visible' : 'none';
+      if (this.map.getLayer('tiles')) this.map.setLayoutProperty('tiles', 'visibility', visibility);
+      if (this.map.getLayer('tiles-shade')) this.map.setLayoutProperty('tiles-shade', 'visibility', visibility);
+      if (this.map.getLayer('tiles-centers')) this.map.setLayoutProperty('tiles-centers', 'visibility', visibility);
+    });
+
+    this.container.appendChild(checkbox);
+    this.container.appendChild(label);
+    return this.container;
+  }
+
+  onRemove() {
+    this.container.parentNode.removeChild(this.container);
+    this.map = undefined;
+  }
+}
+
 map.addControl(new SimpleGeocoder(), 'top-left');
 map.addControl(new StyleSwitcher(), 'top-left');
+map.addControl(new TileToggleControl(), 'top-left');
 map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
 
 // Initialize tile sources and layers
@@ -803,6 +841,7 @@ function initializeTileLayers() {
 
   // Add hillshade layer first if using Mapterhorn style
   if (map.getSource('mapterhorn-raster-dem') && !map.getLayer('hillshade')) {
+    console.log('Adding hillshade layer for Mapterhorn');
     map.addLayer({
       id: 'hillshade',
       type: 'hillshade',
