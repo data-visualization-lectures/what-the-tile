@@ -1,0 +1,15 @@
+{
+  "version": 8,
+  "name": "Mapterhorn Terrain",
+  "sources": {
+    "mapterhorn-raster-dem": {
+      "type": "raster-dem",
+      "url": "https://tiles.mapterhorn.com/tilejson.json",
+      "tileSize": 512,
+      "encoding": "terrarium"
+    }
+  },
+  "layers": [],
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "attribution": "© Mapterhorn | Elevation data from various open sources"
+}

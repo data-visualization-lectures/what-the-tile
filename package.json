@@ -13,7 +13,7 @@
     "budo": "^11.3.2"
   },
   "scripts": {
-    "build": "browserify src/index.js -o docs/bundle.js",
+    "build": "node build.js",
     "dev": "budo src/index.js --live --dir docs"
   },
   "repository": {

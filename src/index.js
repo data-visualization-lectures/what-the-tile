@@ -75,8 +75,24 @@ const styleOptions = [
   { name: 'Voyager', url: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json' },
   { name: 'Positron Light', url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' },
   { name: 'Positron Nolabels', url: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json' },
-  { name: 'Dark Matter', url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' }
+  { name: 'Dark Matter', url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' },
+  { name: 'Mapterhorn', id: 'mapterhorn' }
 ];
+
+// Load Mapterhorn terrain style from external JSON file
+async function getMapterhornStyle() {
+  try {
+    const response = await fetch('./styles/mapterhorn.json');
+    if (!response.ok) {
+      throw new Error(`Failed to load Mapterhorn style: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (err) {
+    console.error('Error loading Mapterhorn style:', err);
+    // Fallback to Voyager style if loading fails
+    return 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
+  }
+}
 
 // Map style switcher control
 class StyleSwitcher {
@@ -89,16 +105,25 @@ class StyleSwitcher {
     const select = document.createElement('select');
     select.style.cssText = 'padding: 5px; border: 1px solid #ccc; border-radius: 3px; font-size: 14px;';
 
-    styleOptions.forEach((style, index) => {
+    styleOptions.forEach((style) => {
       const option = document.createElement('option');
-      option.value = style.url;
+      option.value = style.id || style.url;
       option.textContent = style.name;
       if (style.name === 'Voyager') option.selected = true;
       select.appendChild(option);
     });
 
-    select.addEventListener('change', (e) => {
-      this.map.setStyle(e.target.value);
+    select.addEventListener('change', async (e) => {
+      const selectedStyle = styleOptions.find(s => (s.id || s.url) === e.target.value);
+
+      if (selectedStyle && selectedStyle.id === 'mapterhorn') {
+        // Use Mapterhorn style object - load from external file
+        const mapterhornStyle = await getMapterhornStyle();
+        this.map.setStyle(mapterhornStyle);
+      } else {
+        // Use URL-based styles
+        this.map.setStyle(selectedStyle.url);
+      }
 
       this.map.once('style.load', () => {
         initializeTileLayers();
@@ -136,9 +161,13 @@ function initializeTileLayers() {
   if (map.getLayer('tiles-centers')) map.removeLayer('tiles-centers');
   if (map.getLayer('tiles-shade')) map.removeLayer('tiles-shade');
   if (map.getLayer('tiles')) map.removeLayer('tiles');
+  if (map.getLayer('hillshade')) map.removeLayer('hillshade');
 
   if (map.getSource('tiles-centers-geojson')) map.removeSource('tiles-centers-geojson');
   if (map.getSource('tiles-geojson')) map.removeSource('tiles-geojson');
+  if (map.getSource('mapterhorn-raster-dem')) {
+    // Don't remove the mapterhorn source, just keep it
+  }
 
   map.addSource('tiles-geojson', {
     type: 'geojson',
@@ -156,6 +185,25 @@ function initializeTileLayers() {
     }
   });
 
+  // Add hillshade layer first if using Mapterhorn style
+  if (map.getSource('mapterhorn-raster-dem') && !map.getLayer('hillshade')) {
+    console.log('Adding hillshade layer for Mapterhorn');
+    map.addLayer({
+      id: 'hillshade',
+      type: 'hillshade',
+      source: 'mapterhorn-raster-dem',
+      layout: {
+        'visibility': 'visible'
+      },
+      paint: {
+        'hillshade-illumination-direction': 45,
+        'hillshade-illumination-anchor': 'viewport',
+        'hillshade-exaggeration': 0.5
+      }
+    });
+  }
+
+  // Add tile grid layers
   map.addLayer({
     id: 'tiles',
     source: 'tiles-geojson',
