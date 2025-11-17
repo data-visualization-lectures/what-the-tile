@@ -698,6 +698,9 @@ const styleOptions = [
   { name: 'GSI 写真', id: 'gsi-photo', minzoom: 2, maxzoom: 18 }
 ];
 
+// Track the currently active style
+let currentStyleOption = styleOptions[0]; // Default to Voyager
+
 // Load external style JSON from file
 async function loadExternalStyle(styleId) {
   try {
@@ -743,6 +746,26 @@ class StyleSwitcher {
       const maxzoom = selectedStyle.maxzoom || 28;
       const currentZoom = this.map.getZoom();
 
+      console.log(`Style changed to ${selectedStyle.name}, minzoom: ${minzoom}, maxzoom: ${maxzoom}, currentZoom: ${currentZoom}`);
+
+      // Update the current style option
+      currentStyleOption = selectedStyle;
+
+      // Function to adjust zoom and reinitialize
+      const adjustAndReinitialize = () => {
+        console.log('Adjusting zoom for new style...');
+        // Initialize tile layers BEFORE changing zoom to avoid race condition
+        initializeTileLayers();
+
+        if (currentZoom < minzoom) {
+          console.log(`Zoom adjusted from ${currentZoom} to ${minzoom} (minimum for ${selectedStyle.name})`);
+          this.map.setZoom(minzoom);
+        } else if (currentZoom > maxzoom) {
+          console.log(`Zoom adjusted from ${currentZoom} to ${maxzoom} (maximum for ${selectedStyle.name})`);
+          this.map.setZoom(maxzoom);
+        }
+      };
+
       if (selectedStyle && selectedStyle.id) {
         // Load external style JSON file
         const externalStyle = await loadExternalStyle(selectedStyle.id);
@@ -752,28 +775,35 @@ class StyleSwitcher {
         this.map.setStyle(selectedStyle.url);
       }
 
+      // Track if adjustment has already been done
+      let adjustmentDone = false;
+
+      // Listen for style.load event
       this.map.once('style.load', () => {
-        // Auto-adjust zoom level after style is loaded
-        if (currentZoom < minzoom) {
-          console.log(`Zoom adjusted from ${currentZoom} to ${minzoom} (minimum for this style)`);
-          this.map.setZoom(minzoom);
-        } else if (currentZoom > maxzoom) {
-          console.log(`Zoom adjusted from ${currentZoom} to ${maxzoom} (maximum for this style)`);
-          this.map.setZoom(maxzoom);
+        console.log('style.load event fired');
+        if (!adjustmentDone) {
+          adjustmentDone = true;
+          adjustAndReinitialize();
         }
-        initializeTileLayers();
       });
 
+      // Also listen for load event as fallback
       this.map.once('load', () => {
-        initializeTileLayers();
+        console.log('load event fired');
+        if (!adjustmentDone && this.map.isStyleLoaded()) {
+          adjustmentDone = true;
+          adjustAndReinitialize();
+        }
       });
 
       // Fallback: setTimeout as last resort
       setTimeout(() => {
-        if (this.map.isStyleLoaded()) {
-          initializeTileLayers();
+        console.log('setTimeout fallback check, isStyleLoaded:', this.map.isStyleLoaded());
+        if (!adjustmentDone && this.map.isStyleLoaded()) {
+          adjustmentDone = true;
+          adjustAndReinitialize();
         }
-      }, 1000);
+      }, 1500);
     });
 
     this.container.appendChild(select);
@@ -896,6 +926,8 @@ function initializeTileLayers() {
 }
 
 map.on('load', () => {
+  // Adjust zoom level based on the current style's supported range
+  adjustZoomToCurrentStyle();
   initializeTileLayers();
   updateUrlWithMapState();
 });
@@ -914,6 +946,20 @@ map.on('click', (e) => {
     showSnackbar()
   }
 })
+
+function adjustZoomToCurrentStyle() {
+  const minzoom = currentStyleOption.minzoom || 0;
+  const maxzoom = currentStyleOption.maxzoom || 28;
+  const currentZoom = map.getZoom();
+
+  if (currentZoom < minzoom) {
+    console.log(`Zoom adjusted from ${currentZoom} to ${minzoom} (minimum for ${currentStyleOption.name})`);
+    map.setZoom(minzoom);
+  } else if (currentZoom > maxzoom) {
+    console.log(`Zoom adjusted from ${currentZoom} to ${maxzoom} (maximum for ${currentStyleOption.name})`);
+    map.setZoom(maxzoom);
+  }
+}
 
 function update() {
   updateTiles();
