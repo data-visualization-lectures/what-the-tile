@@ -815,13 +815,9 @@ function initializeTileLayers() {
   if (map.getLayer('tiles-centers')) map.removeLayer('tiles-centers');
   if (map.getLayer('tiles-shade')) map.removeLayer('tiles-shade');
   if (map.getLayer('tiles')) map.removeLayer('tiles');
-  if (map.getLayer('hillshade')) map.removeLayer('hillshade');
 
   if (map.getSource('tiles-centers-geojson')) map.removeSource('tiles-centers-geojson');
   if (map.getSource('tiles-geojson')) map.removeSource('tiles-geojson');
-  if (map.getSource('mapterhorn-raster-dem')) {
-    // Don't remove the mapterhorn source, just keep it
-  }
 
   map.addSource('tiles-geojson', {
     type: 'geojson',
@@ -838,24 +834,6 @@ function initializeTileLayers() {
       features: []
     }
   });
-
-  // Add hillshade layer first if using Mapterhorn style
-  if (map.getSource('mapterhorn-raster-dem') && !map.getLayer('hillshade')) {
-    console.log('Adding hillshade layer for Mapterhorn');
-    map.addLayer({
-      id: 'hillshade',
-      type: 'hillshade',
-      source: 'mapterhorn-raster-dem',
-      layout: {
-        'visibility': 'visible'
-      },
-      paint: {
-        'hillshade-illumination-direction': 45,
-        'hillshade-illumination-anchor': 'viewport',
-        'hillshade-exaggeration': 0.5
-      }
-    });
-  }
 
   // Add tile grid layers
   map.addLayer({

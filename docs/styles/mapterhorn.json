@@ -9,7 +9,21 @@
       "encoding": "terrarium"
     }
   },
-  "layers": [],
+  "layers": [
+    {
+      "id": "hillshade",
+      "type": "hillshade",
+      "source": "mapterhorn-raster-dem",
+      "layout": {
+        "visibility": "visible"
+      },
+      "paint": {
+        "hillshade-illumination-direction": 45,
+        "hillshade-illumination-anchor": "viewport",
+        "hillshade-exaggeration": 0.5
+      }
+    }
+  ],
   "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
   "attribution": "© Mapterhorn | Elevation data from various open sources"
 }
