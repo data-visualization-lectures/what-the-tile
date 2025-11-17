@@ -1,0 +1,25 @@
+{
+  "version": 8,
+  "name": "GSI 標準地図",
+  "sources": {
+    "gsi-std": {
+      "type": "raster",
+      "tiles": [
+        "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"
+      ],
+      "tileSize": 256,
+      "minzoom": 5,
+      "maxzoom": 18
+    }
+  },
+  "layers": [
+    {
+      "id": "gsi-std-layer",
+      "type": "raster",
+      "source": "gsi-std",
+      "paint": {}
+    }
+  ],
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "attribution": "© Geospatial Information Authority of Japan"
+}

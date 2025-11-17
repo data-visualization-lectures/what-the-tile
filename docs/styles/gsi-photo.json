@@ -1,0 +1,25 @@
+{
+  "version": 8,
+  "name": "GSI 写真（空中写真）",
+  "sources": {
+    "gsi-photo": {
+      "type": "raster",
+      "tiles": [
+        "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg"
+      ],
+      "tileSize": 256,
+      "minzoom": 2,
+      "maxzoom": 18
+    }
+  },
+  "layers": [
+    {
+      "id": "gsi-photo-layer",
+      "type": "raster",
+      "source": "gsi-photo",
+      "paint": {}
+    }
+  ],
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "attribution": "© Geospatial Information Authority of Japan"
+}

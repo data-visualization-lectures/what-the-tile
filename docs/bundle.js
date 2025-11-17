@@ -692,22 +692,30 @@ const styleOptions = [
   { name: 'Positron Light', url: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json' },
   { name: 'Positron Nolabels', url: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json' },
   { name: 'Dark Matter', url: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' },
-  { name: 'Mapterhorn', id: 'mapterhorn' }
+  { name: 'Mapterhorn', id: 'mapterhorn' },
+  { name: 'GSI 標準地図', id: 'gsi-std' },
+  { name: 'GSI 淡色地図', id: 'gsi-pale' },
+  { name: 'GSI 写真', id: 'gsi-photo' }
 ];
 
-// Load Mapterhorn terrain style from external JSON file
-async function getMapterhornStyle() {
+// Load external style JSON from file
+async function loadExternalStyle(styleId) {
   try {
-    const response = await fetch('./styles/mapterhorn.json');
+    const response = await fetch(`./styles/${styleId}.json`);
     if (!response.ok) {
-      throw new Error(`Failed to load Mapterhorn style: ${response.statusText}`);
+      throw new Error(`Failed to load ${styleId} style: ${response.statusText}`);
     }
     return await response.json();
   } catch (err) {
-    console.error('Error loading Mapterhorn style:', err);
+    console.error(`Error loading ${styleId} style:`, err);
     // Fallback to Voyager style if loading fails
     return 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
   }
+}
+
+// Legacy function for backward compatibility
+async function getMapterhornStyle() {
+  return loadExternalStyle('mapterhorn');
 }
 
 // Map style switcher control
@@ -732,10 +740,10 @@ class StyleSwitcher {
     select.addEventListener('change', async (e) => {
       const selectedStyle = styleOptions.find(s => (s.id || s.url) === e.target.value);
 
-      if (selectedStyle && selectedStyle.id === 'mapterhorn') {
-        // Use Mapterhorn style object - load from external file
-        const mapterhornStyle = await getMapterhornStyle();
-        this.map.setStyle(mapterhornStyle);
+      if (selectedStyle && selectedStyle.id) {
+        // Load external style JSON file
+        const externalStyle = await loadExternalStyle(selectedStyle.id);
+        this.map.setStyle(externalStyle);
       } else {
         // Use URL-based styles
         this.map.setStyle(selectedStyle.url);

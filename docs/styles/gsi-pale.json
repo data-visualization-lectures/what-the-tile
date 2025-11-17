@@ -1,0 +1,25 @@
+{
+  "version": 8,
+  "name": "GSI 淡色地図",
+  "sources": {
+    "gsi-pale": {
+      "type": "raster",
+      "tiles": [
+        "https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png"
+      ],
+      "tileSize": 256,
+      "minzoom": 5,
+      "maxzoom": 18
+    }
+  },
+  "layers": [
+    {
+      "id": "gsi-pale-layer",
+      "type": "raster",
+      "source": "gsi-pale",
+      "paint": {}
+    }
+  ],
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "attribution": "© Geospatial Information Authority of Japan"
+}
