@@ -2,8 +2,14 @@ const browserify = require('browserify');
 const fs = require('fs');
 const path = require('path');
 
-const b = browserify('src/index.js');
-const outStream = fs.createWriteStream('docs/bundle.js');
+const outputDir = path.resolve(__dirname, 'docs');
+const outputFile = path.join(outputDir, 'bundle.js');
+const entryFile = path.resolve(__dirname, 'src/index.js');
+
+fs.mkdirSync(outputDir, { recursive: true });
+
+const b = browserify(entryFile);
+const outStream = fs.createWriteStream(outputFile);
 
 b.bundle()
   .pipe(outStream)
