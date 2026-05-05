@@ -4,3 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+[[redirects]]
+  from = "https://what-the-tile.dataviz.jp/*"
+  to = "https://what-the-tile.dataprep.jp/:splat"
+  status = 301
+  force = true
