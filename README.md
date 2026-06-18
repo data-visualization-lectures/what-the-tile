@@ -9,13 +9,15 @@ npm install
 
 ## ローカルで確認する場合
 npm run dev
-http://192.168.150.44:9966/?auth_debug
+http://192.168.150.44:9966/
 
 ## ビルド
 npm run build
 
 ## デプロイ
 このリポジトリは `GitHub Pages` ではなく `Netlify` へデプロイする前提です。
+
+公開 URL: https://what-the-tile.explorable-explanations.com/
 
 - `GitHub` に push
 - `Netlify` がリポジトリ更新を検知

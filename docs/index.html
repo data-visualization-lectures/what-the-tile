@@ -6,9 +6,8 @@
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <link href='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css' rel='stylesheet' />
     <style>
-        :root { --dv-header-height: 0px; }
         body { margin:0; padding:0; font-family: sans-serif;}
-        #map { position:absolute; top:var(--dv-header-height, 0px); bottom:0; width:100%; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
 
         #snackbar {
             visibility: hidden; /* Hidden by default. Visible on click */
@@ -45,34 +44,5 @@
 <div id='map'></div>
 <div id='snackbar'>クリックしたタイルの情報をコピーしました</div>
 </body>
-<script src="https://app.dataviz.jp/lib/supabase.js"></script>
-<script src="https://app.dataviz.jp/lib/dataviz-auth-client.js"></script>
-<script>
-    (function () {
-        function setHeaderHeight(el) {
-            if (!el) return;
-            var height = el.getBoundingClientRect().height;
-            if (height > 0) {
-                document.documentElement.style.setProperty("--dv-header-height", height + "px");
-            }
-        }
-        function boot() {
-            var header = document.querySelector("dataviz-header");
-            if (!header) return;
-            setHeaderHeight(header);
-            if (window.ResizeObserver) {
-                var ro = new ResizeObserver(function () {
-                    setHeaderHeight(header);
-                });
-                ro.observe(header);
-            } else {
-                window.addEventListener("resize", function () {
-                    setHeaderHeight(header);
-                });
-            }
-        }
-        window.addEventListener("load", boot);
-    })();
-</script>
 <script src='./bundle.js'></script>
 </html>
